@@ -23,14 +23,14 @@ import ServiceDetail from './pages/ServiceDetail';
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
-      
+
       <Navbar />
 
-      <main className="flex-1 container mx-auto p-4">
+      {/* Removed container, margin, padding */}
+      <main className="flex-1 w-full">
 
         <Routes>
 
-          {/* PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/login" element={<Login />} />
@@ -38,15 +38,11 @@ export default function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-
-          {/* SERVICES ROUTES */}
           <Route path="/services" element={<Services />} />
           <Route path="/services/:slug" element={<ServiceDetail />} />
 
-          {/* BOOK SERVICE */}
           <Route path="/book-service" element={<BookService />} />
 
-          {/* PROTECTED ROUTES */}
           <Route
             path="/dashboard"
             element={
@@ -55,14 +51,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route 
-            path="/my-bookings" 
+
+          <Route
+            path="/my-bookings"
             element={
-            <ProtectedRoute>
-              <MyBookings />
-            </ProtectedRoute>
-           }
+              <ProtectedRoute>
+                <MyBookings />
+              </ProtectedRoute>
+            }
           />
+
           <Route
             path="/admin"
             element={
@@ -72,10 +70,9 @@ export default function App() {
             }
           />
 
-
         </Routes>
 
       </main>
     </div>
-  )
+  );
 }

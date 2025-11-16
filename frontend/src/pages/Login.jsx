@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function Login() {
   const { login } = useContext(AuthContext);
@@ -15,18 +16,41 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white shadow p-6 rounded">
-      <h2 className="text-2xl font-bold mb-4">Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input className="w-full p-2 border mb-2"
-          placeholder="Email" onChange={(e)=>setEmail(e.target.value)} />
-        
-        <input className="w-full p-2 border mb-2"
-          type="password" placeholder="Password"
-          onChange={(e)=>setPassword(e.target.value)} />
-        
-        <button className="bg-blue-600 text-white w-full p-2 rounded">Login</button>
-      </form>
+    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-black/60 backdrop-blur-xl shadow-xl border border-gray-800 rounded-xl p-8"
+      >
+        <h2 className="text-3xl font-bold text-center text-white mb-6">
+          Welcome Back
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4 text-white">
+
+          <input
+            type="email"
+            className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-pink-500 outline-none"
+            placeholder="Email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            type="password"
+            className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-pink-500 outline-none"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button
+            className="w-full p-3 bg-pink-600 hover:bg-pink-700 transition font-semibold rounded-lg text-white shadow-lg"
+          >
+            Login
+          </button>
+        </form>
+
+      </motion.div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import api from "../utils/api";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
@@ -16,45 +16,58 @@ export default function AdminLogin() {
     setError("");
 
     try {
-        await adminLogin(email, password);  // <-- only one call now
-
-        navigate("/admin/dashboard");
-    } 
-    catch (err) {
-        setError("Invalid admin credentials");
+      await adminLogin(email, password);
+      navigate("/admin/dashboard");
+    } catch (err) {
+      setError("Invalid admin credentials");
     }
   };
 
-
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 bg-white shadow-lg rounded">
-      <h2 className="text-3xl font-bold text-center mb-4">Admin Login</h2>
+    <div className="min-h-screen bg-black flex items-center justify-center px-4">
 
-      {error && (
-        <p className="bg-red-100 text-red-600 p-2 rounded mb-3">{error}</p>
-      )}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md bg-black/60 backdrop-blur-xl border border-red-800/40 p-8 rounded-xl shadow-[0_0_20px_rgba(255,0,0,0.2)]"
+      >
+        <h2 className="text-4xl font-bold text-center text-red-500 mb-6 drop-shadow-lg">
+          Admin Login
+        </h2>
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Admin Email"
-          className="w-full border p-2 rounded"
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        {error && (
+          <p className="bg-red-900/40 text-red-300 border border-red-700 p-3 rounded mb-4 text-center">
+            {error}
+          </p>
+        )}
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border p-2 rounded"
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <form onSubmit={handleLogin} className="space-y-4 text-white">
 
-        <button className="w-full bg-red-600 text-white py-2 rounded">
-          Login as Admin
-        </button>
-      </form>
+          <input
+            type="email"
+            placeholder="Admin Email"
+            className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-red-500 outline-none"
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-red-500 outline-none"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <button
+            className="w-full py-3 bg-red-600 hover:bg-red-700 transition rounded-lg font-semibold text-white shadow-lg hover:shadow-red-500/40"
+          >
+            Login as Admin
+          </button>
+        </form>
+      </motion.div>
+
     </div>
   );
 }

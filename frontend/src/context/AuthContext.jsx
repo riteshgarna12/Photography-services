@@ -34,18 +34,49 @@ export default function AuthProvider({ children }) {
   };
 
   // ADMIN LOGIN
-  const adminLogin = async (email, password) => {
+const adminLogin = async (email, password) => {
+  try {
+   console.log("Sending login request...");
     const res = await api.post("/auth/admin/login", { email, password });
-    localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
-  };
+    console.log("Response:", res.data);
 
-  // REGISTER
-  const register = async (data) => {
-    const res = await api.post("/auth/register", data);
+    if (res.data.user.role !== "admin") {
+      console.log("Not admin:", res.data.user.role);
+      throw new Error("Not authorized");
+    }
+
     localStorage.setItem("token", res.data.token);
     setUser(res.data.user);
-  };
+
+    return res.data;
+  } 
+  catch (err) {
+    console.log("Admin login ERROR:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
+
+
+ // REGISTER
+const register = async (data) => {
+  try {
+    console.log("📤 Sending register request:", data);
+
+    const res = await api.post("/auth/register", data);
+
+    console.log("📥 Register Response:", res.data);
+
+    localStorage.setItem("token", res.data.token);
+    setUser(res.data.user);
+
+    return res.data;
+  } catch (err) {
+    console.log("🔥 Register ERROR:", err.response?.data || err.message);
+    throw err;
+  }
+};
+
 
   // LOGOUT
   const logout = () => {

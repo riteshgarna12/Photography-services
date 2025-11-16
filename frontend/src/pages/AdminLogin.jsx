@@ -4,9 +4,9 @@ import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
-  const { setUser } = useContext(AuthContext);
   const navigate = useNavigate();
-  
+  const { adminLogin } = useContext(AuthContext);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -16,24 +16,15 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await api.post("/auth/admin/login", { email, password });
+        await adminLogin(email, password);  // <-- only one call now
 
-      if (res.data.user.role !== "admin") {
-        setError("You are not authorized as admin");
-        return;
-      }
-
-      // Save token
-      localStorage.setItem("token", res.data.token);
-
-      // Set user in AuthContext
-      setUser(res.data.user);
-
-      navigate("/admin/dashboard");
-    } catch (err) {
-      setError("Invalid admin credentials");
+        navigate("/admin/dashboard");
+    } 
+    catch (err) {
+        setError("Invalid admin credentials");
     }
   };
+
 
   return (
     <div className="max-w-md mx-auto mt-20 p-6 bg-white shadow-lg rounded">

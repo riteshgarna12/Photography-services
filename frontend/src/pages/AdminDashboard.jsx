@@ -6,15 +6,14 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer
 } from "recharts";
+import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
   const { user } = useContext(AuthContext);
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    if (user?.role === "admin") {
-      loadStats();
-    }
+    if (user?.role === "admin") loadStats();
   }, [user]);
 
   const loadStats = async () => {
@@ -22,12 +21,14 @@ export default function AdminDashboard() {
     setStats(res.data);
   };
 
-  if (!user || user.role !== "admin") {
-  return <p className="text-center text-red-500 mt-10">Access Denied</p>;
-}
+  if (!user || user.role !== "admin")
+    return (
+      <p className="text-center text-red-500 text-xl mt-10">
+        ❌ Access Denied — Admin Only
+      </p>
+    );
 
-
-  if (!stats) return <p className="text-center mt-10">Loading...</p>;
+  if (!stats) return <p className="text-center text-gray-300 mt-10">Loading...</p>;
 
   const pieData = [
     { name: "Pending", value: stats.pending },
@@ -35,52 +36,74 @@ export default function AdminDashboard() {
     { name: "Cancelled", value: stats.cancelled },
   ];
 
-  const COLORS = ["#fbbf24", "#10b981", "#ef4444"];
+  const COLORS = ["#facc15", "#22c55e", "#ef4444"];
 
   const barData = [
-    { name: "Total Bookings", count: stats.totalBookings },
+    { name: "Total", count: stats.totalBookings },
     { name: "Confirmed", count: stats.confirmed },
     { name: "Pending", count: stats.pending },
     { name: "Cancelled", count: stats.cancelled },
   ];
 
   return (
-    <div className="max-w-6xl mx-auto mt-10">
+    <div className="min-h-screen pt-10 px-6 bg-black text-white">
 
-      <h2 className="text-4xl font-bold mb-6">Admin Dashboard</h2>
+      {/* HEADING */}
+      <motion.h2
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-4xl font-bold mb-8 text-center text-pink-500 drop-shadow-lg"
+      >
+        Admin Dashboard
+      </motion.h2>
 
       {/* TOP STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="p-4 rounded shadow bg-blue-100">
-          <h3 className="text-xl font-bold">Total Bookings</h3>
-          <p className="text-3xl">{stats.totalBookings}</p>
-        </div>
-        <div className="p-4 rounded shadow bg-yellow-100">
-          <h3 className="text-xl font-bold">Pending</h3>
-          <p className="text-3xl">{stats.pending}</p>
-        </div>
-        <div className="p-4 rounded shadow bg-green-100">
-          <h3 className="text-xl font-bold">Confirmed</h3>
-          <p className="text-3xl">{stats.confirmed}</p>
-        </div>
-        <div className="p-4 rounded shadow bg-red-100">
-          <h3 className="text-xl font-bold">Cancelled</h3>
-          <p className="text-3xl">{stats.cancelled}</p>
-        </div>
+        {[
+          { label: "Total Bookings", value: stats.totalBookings, color: "blue" },
+          { label: "Pending", value: stats.pending, color: "yellow" },
+          { label: "Confirmed", value: stats.confirmed, color: "green" },
+          { label: "Cancelled", value: stats.cancelled, color: "red" },
+        ].map((card, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className={`p-6 rounded-xl shadow-xl bg-gray-900/60 border border-${card.color}-500/40`}
+          >
+            <h3 className={`text-lg font-semibold text-${card.color}-400`}>
+              {card.label}
+            </h3>
+            <p className="text-4xl font-bold mt-2">{card.value}</p>
+          </motion.div>
+        ))}
       </div>
 
       {/* Revenue Card */}
-      <div className="mt-6 p-6 bg-purple-100 rounded shadow">
-        <h3 className="text-xl font-bold">Total Revenue</h3>
-        <p className="text-4xl font-bold mt-2">₹ {stats.revenue}</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-8 p-6 bg-gray-900/60 border border-purple-500/40 rounded-xl shadow-lg"
+      >
+        <h3 className="text-xl font-bold text-purple-400">Total Revenue</h3>
+        <p className="text-5xl font-bold mt-2 text-purple-300">
+          ₹ {stats.revenue}
+        </p>
+      </motion.div>
 
       {/* CHARTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
 
         {/* Pie Chart */}
-        <div className="p-4 bg-white shadow rounded">
-          <h3 className="text-xl font-bold mb-4">Booking Status Distribution</h3>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-6 bg-gray-900/60 rounded-xl border border-gray-700 shadow-lg"
+        >
+          <h3 className="text-xl font-bold mb-4 text-gray-200">
+            Booking Status Distribution
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -89,31 +112,36 @@ export default function AdminDashboard() {
                 cy="50%"
                 innerRadius={50}
                 outerRadius={100}
-                fill="#8884d8"
                 dataKey="value"
-                label
+                label={(entry) => `${entry.name} (${entry.value})`}
               >
-                {pieData.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index]} />
+                {pieData.map((entry, i) => (
+                  <Cell key={i} fill={COLORS[i]} />
                 ))}
               </Pie>
-              <Legend />
+              <Legend wrapperStyle={{ color: "white" }} />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
         {/* Bar Chart */}
-        <div className="p-4 bg-white shadow rounded">
-          <h3 className="text-xl font-bold mb-4">Booking Summary</h3>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-6 bg-gray-900/60 rounded-xl border border-gray-700 shadow-lg"
+        >
+          <h3 className="text-xl font-bold mb-4 text-gray-200">
+            Booking Summary
+          </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={barData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3b82f6" />
+              <XAxis dataKey="name" stroke="#ccc" />
+              <YAxis stroke="#ccc" />
+              <Tooltip wrapperStyle={{ backgroundColor: "#111", color: "#fff" }} />
+              <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
       </div>
     </div>

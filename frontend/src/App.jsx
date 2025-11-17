@@ -6,7 +6,9 @@ import Login from './pages/Auth/Login'
 import Signup from './pages/Auth/Signup'
 import Dashboard from './pages/Home/Dashboard'
 import AdminLogin from "./pages/AdminPanel/AdminLogin";
-
+import About from './pages/About';
+import Packages from "./pages/Package/Packages";
+import PackagePortfolio from "./pages/Package/PackagePortfolio";
 
 import Navbar from './components/Navbar'
 import Gallery from './components/Gallery'
@@ -33,6 +35,7 @@ export default function App() {
 
           <Route path="/" element={<Home />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -40,6 +43,10 @@ export default function App() {
 
           <Route path="/services" element={<Services />} />
           <Route path="/services/:slug" element={<ServiceDetail />} />
+          <Route path="/packages" element={<Packages />} />
+
+          <Route path="/packages/:slug/portfolio" element={<PackagePortfolio />} />
+          <Route path="/packages/:slug" element={<PackagePortfolio />} />
 
           <Route path="/book-service" element={<BookService />} />
 

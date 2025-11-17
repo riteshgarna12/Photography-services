@@ -50,6 +50,9 @@ export default function Navbar() {
             <>
               <Link to="/" className="hover:text-white">Home</Link>
               <Link to="/gallery" className="hover:text-white">Gallery</Link>
+              <Link to="/about" className="hover:text-white">About</Link>
+              <Link to="/packages" className="hover:text-white">Packages</Link>
+
 
               <Link
                 to="/signup"
@@ -78,6 +81,7 @@ export default function Navbar() {
           {isUser && (
             <>
               <Link to="/gallery" className="hover:text-white">Gallery</Link>
+              <Link to="/packages" className="hover:text-white">Packages</Link>
 
               <Link
                 to="/book-service"

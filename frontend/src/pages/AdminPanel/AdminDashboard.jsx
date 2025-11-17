@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
-import api from "../utils/api";
+import { AuthContext } from "../../context/AuthContext";
+import api from "../../utils/api";
 import {
   PieChart, Pie, Cell, Legend,
   BarChart, Bar, XAxis, YAxis, Tooltip,

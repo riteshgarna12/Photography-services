@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../../utils/api';
 
 export default function ServiceDetail(){
   const { slug } = useParams();

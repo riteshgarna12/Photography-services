@@ -1,24 +1,24 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
-import Dashboard from './pages/Dashboard'
-import AdminLogin from "./pages/AdminLogin";
+import Home from './pages/Home/Home'
+import Login from './pages/Auth/Login'
+import Signup from './pages/Auth/Signup'
+import Dashboard from './pages/Home/Dashboard'
+import AdminLogin from "./pages/AdminPanel/AdminLogin";
 
 
 import Navbar from './components/Navbar'
 import Gallery from './components/Gallery'
 import ProtectedRoute from './components/ProtectedRoute'
-import BookService from './pages/BookService'
-import MyBookings from './pages/MyBookings'
+import BookService from './pages/Services/BookService'
+import MyBookings from './pages/Services/MyBookings'
 
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './pages/AdminPanel/AdminDashboard';
 
 // NEW dynamic service pages
-import Services from './pages/Services';
-import ServiceDetail from './pages/ServiceDetail';
+import Services from './pages/Services/Services';
+import ServiceDetail from './pages/Services/ServiceDetail';
 
 export default function App() {
   return (

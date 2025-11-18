@@ -9,6 +9,7 @@ import AdminLogin from "./pages/AdminPanel/AdminLogin";
 import About from './pages/About';
 import Packages from "./pages/Package/Packages";
 import PackagePortfolio from "./pages/Package/PackagePortfolio";
+import Profile from './pages/Profile';
 
 import Navbar from './components/Navbar'
 import Gallery from './components/Gallery'
@@ -49,6 +50,11 @@ export default function App() {
           <Route path="/packages/:slug" element={<PackagePortfolio />} />
 
           <Route path="/book-service" element={<BookService />} />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
 
           <Route
             path="/dashboard"

@@ -109,3 +109,55 @@ exports.me = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// =======================
+// UPDATE USER PROFILE
+// =======================
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // 1️⃣ Check duplicate email (except current user)
+    const existingEmail = await User.findOne({ 
+      email, 
+      _id: { $ne: req.userId } 
+    });
+
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
+
+    // 2️⃣ Get user from DB
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // 3️⃣ Update fields
+    user.name = name;
+    user.email = email;
+
+    // 4️⃣ Hash password if provided
+    if (password && password.trim() !== "") {
+      const bcrypt = require("bcryptjs");
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    // 5️⃣ Save updated user
+    await user.save();
+
+    // 6️⃣ Return secure user details
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

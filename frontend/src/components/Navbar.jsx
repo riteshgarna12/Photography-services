@@ -43,6 +43,8 @@ export default function Navbar() {
               <Link to="/" className="hover:text-white">Home</Link>
               <Link to="/gallery" className="hover:text-white">Gallery</Link>
               <Link to="/packages" className="hover:text-white">Packages</Link>
+              <Link to="/team" className="hover:text-white">Team</Link>
+
 
               <Link to="/signup" className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                 Sign Up
@@ -61,6 +63,8 @@ export default function Navbar() {
             <>
               <Link to="/gallery" className="hover:text-white">Gallery</Link>
               <Link to="/packages" className="hover:text-white">Packages</Link>
+              <Link to="/team" className="hover:text-white">Team</Link>
+
 
               <Link
                 to="/book-service"

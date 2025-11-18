@@ -10,12 +10,14 @@ import About from './pages/About';
 import Packages from "./pages/Package/Packages";
 import PackagePortfolio from "./pages/Package/PackagePortfolio";
 import Profile from './pages/Profile';
-
+import Team from './pages/Team';
 import Navbar from './components/Navbar'
 import Gallery from './components/Gallery'
 import ProtectedRoute from './components/ProtectedRoute'
 import BookService from './pages/Services/BookService'
 import MyBookings from './pages/Services/MyBookings'
+
+
 
 import AdminDashboard from './pages/AdminPanel/AdminDashboard';
 
@@ -42,6 +44,8 @@ export default function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
+          <Route path="/team" element={<Team />} />
+
           <Route path="/services" element={<Services />} />
           <Route path="/services/:slug" element={<ServiceDetail />} />
           <Route path="/packages" element={<Packages />} />
@@ -50,6 +54,8 @@ export default function App() {
           <Route path="/packages/:slug" element={<PackagePortfolio />} />
 
           <Route path="/book-service" element={<BookService />} />
+
+          
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />

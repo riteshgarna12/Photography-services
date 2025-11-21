@@ -79,9 +79,13 @@ export default function Navbar() {
           {isAdmin && (
             <Link
               to="/admin/dashboard"
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            >
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
               Admin Panel
+            </Link>
+          )}
+          {isAdmin && (
+            <Link to="/admin/team" className="hover:text-white">
+               Manage Team
             </Link>
           )}
 

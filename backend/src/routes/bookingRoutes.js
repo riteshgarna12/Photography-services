@@ -1,10 +1,27 @@
-const router = require('express').Router();
-const auth = require('../middleware/auth');
-const { createBooking, listBookings, listMyBookings, cancelBooking } = require('../controllers/bookingController');
+const router = require("express").Router();
+const auth = require("../middleware/auth");
+const admin = require("../middleware/admin");
+const {
+  createBooking,
+  listBookings,
+  listMyBookings,
+  cancelBooking,
+  adminListBookings,
+  exportBookingsCsv,
+} = require("../controllers/bookingController");
 
+// client
 router.post("/", auth, createBooking);
-router.get("/", auth, listBookings); // Admin only (but we handle in controller)
-router.get("/my", auth, listMyBookings); // My bookings
-router.put("/cancel/:id", auth, cancelBooking); // Cancel booking
+router.get("/my", auth, listMyBookings);
+router.put("/cancel/:id", auth, cancelBooking);
+
+// admin: raw list (if you want)
+router.get("/", auth, admin, listBookings);
+
+// admin: filtered list
+router.get("/admin/list", auth, admin, adminListBookings);
+
+// admin: CSV export
+router.get("/admin/export", auth, admin, exportBookingsCsv);
 
 module.exports = router;

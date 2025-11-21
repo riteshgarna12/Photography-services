@@ -45,13 +45,113 @@ exports.cancelBooking = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const booking = await Booking.findOne({ _id: id, client: req.userId });
-    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    console.log("Cancel request:", { bookingId: id, userId: req.userId });
+
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Ensure booking belongs to this user
+    if (booking.client.toString() !== req.userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "You are not allowed to cancel this booking" });
+    }
+
+    if (booking.status === "cancelled") {
+      return res
+        .status(400)
+        .json({ message: "Booking is already cancelled" });
+    }
 
     booking.status = "cancelled";
     await booking.save();
 
-    res.json({ message: "Booking cancelled" });
+    return res.json({
+      message: "Booking cancelled successfully",
+      booking,
+    });
+  } catch (err) {
+    console.error("Error while cancelling booking:", err);
+    res.status(500).json({ error: err.message || "Server error" });
+  }
+};
+
+// ADMIN: FILTERED BOOKINGS LIST
+exports.adminListBookings = async (req, res) => {
+  try {
+    const { status, serviceType, fromDate, toDate } = req.query;
+
+    const query = {};
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    if (serviceType && serviceType !== "all") {
+      query.serviceType = serviceType;
+    }
+
+    if (fromDate || toDate) {
+      query.date = {};
+      if (fromDate) query.date.$gte = fromDate;
+      if (toDate) query.date.$lte = toDate;
+    }
+
+    const bookings = await Booking.find(query)
+      .populate("client", "name email")
+      .sort("-createdAt");
+
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ADMIN: EXPORT BOOKINGS TO CSV
+exports.exportBookingsCsv = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate("client", "name email")
+      .sort("-createdAt");
+
+    const rows = [];
+    rows.push(
+      [
+        "Client Name",
+        "Client Email",
+        "Service Type",
+        "Date",
+        "Time",
+        "Status",
+        "Created At",
+      ].join(",")
+    );
+
+    bookings.forEach((b) => {
+      rows.push(
+        [
+          `"${b.client?.name || ""}"`,
+          `"${b.client?.email || ""}"`,
+          `"${b.serviceType}"`,
+          `"${b.date}"`,
+          `"${b.time}"`,
+          `"${b.status}"`,
+          `"${b.createdAt.toISOString()}"`,
+        ].join(",")
+      );
+    });
+
+    const csv = rows.join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="bookings_export.csv"'
+    );
+    res.send(csv);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

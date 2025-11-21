@@ -4,6 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const createDefaultAdmin = require("./utils/createAdmin");
+const teamRoutes = require("./routes/teamRoutes");
 
 // ROUTES
 const authRoutes = require("./routes/authRoutes");
@@ -50,6 +51,7 @@ app.use("/api/auth", authRoutes);       // User login/register & admin login
 app.use("/api/admin", adminRoutes);     // Admin panels routes
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/team", teamRoutes);
 
 // TEST ROUTE
 app.get("/", (req, res) => {

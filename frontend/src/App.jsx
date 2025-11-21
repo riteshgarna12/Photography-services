@@ -20,6 +20,7 @@ import MyBookings from './pages/Services/MyBookings'
 
 
 import AdminDashboard from './pages/AdminPanel/AdminDashboard';
+import AdminTeam from "./pages/AdminPanel/AdminTeam";
 
 // NEW dynamic service pages
 import Services from './pages/Services/Services';
@@ -59,6 +60,12 @@ export default function App() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/team" element={
+            <ProtectedRoute adminOnly>
+              <AdminTeam />
             </ProtectedRoute>
           } />
 

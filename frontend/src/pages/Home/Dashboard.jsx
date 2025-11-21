@@ -22,14 +22,24 @@ export default function Dashboard() {
     }
   };
 
+  // ✅ FIXED: use PUT /bookings/cancel/:id instead of DELETE /bookings/:id
   const cancelBooking = async (id) => {
     if (!window.confirm("Are you sure you want to cancel this booking?")) return;
-    
+
     try {
-      await api.delete(`/bookings/${id}`);
-      loadBookings();
-    } catch {
-      alert("Failed to cancel booking.");
+      const res = await api.put(`/bookings/cancel/${id}`);
+
+      // Update UI without reloading
+      setBookings((prev) =>
+        prev.map((b) =>
+          b._id === id ? { ...b, status: "cancelled" } : b
+        )
+      );
+
+      alert(res.data?.message || "Booking cancelled.");
+    } catch (err) {
+      console.error("Cancel error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Failed to cancel booking.");
     }
   };
 
@@ -37,9 +47,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-black text-white px-6 py-10">
 
       {/* Welcome Message */}
-      <motion.div 
-        initial={{ opacity: 0, y: -30 }} 
-        animate={{ opacity: 1, y: 0 }} 
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
         className="mb-10"
       >
         <h1 className="text-4xl font-bold">Welcome, {user?.name} 👋</h1>
@@ -55,9 +65,9 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="p-6 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:shadow-lg hover:shadow-pink-500/20 transition"
           onClick={() => navigate("/gallery")}
         >
@@ -65,9 +75,9 @@ export default function Dashboard() {
           <p className="text-gray-400 text-sm mt-2">Explore our best work</p>
         </motion.div>
 
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="p-6 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:shadow-lg hover:shadow-purple-500/20 transition"
           onClick={() => navigate("/packages")}
         >
@@ -75,10 +85,10 @@ export default function Dashboard() {
           <p className="text-gray-400 text-sm mt-2">Wedding, Cinematic & more</p>
         </motion.div>
 
-        <motion.div 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
-          className="p-6 bg-gray-900 border border-gray-800 rounded-xl"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="p-6 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:shadow-lg hover:shadow-blue-500/20 transition"
           onClick={() => navigate("/profile")}
         >
           <h3 className="text-xl font-semibold">Profile</h3>

@@ -6,16 +6,30 @@ exports.createBooking = async (req, res) => {
     const data = req.body;
     data.client = req.userId;
 
+    // ---- Basic validation for contact method ----
+    if (!data.contactMethod || !data.contactValue) {
+      return res.status(400).json({
+        message: "Preferred contact method and value are required.",
+      });
+    }
+
+    // Normalize method just in case
+    if (!["whatsapp", "email"].includes(data.contactMethod)) {
+      return res.status(400).json({
+        message: "Contact method must be either whatsapp or email.",
+      });
+    }
+
     // Prevent duplicate booking same date + service
     const existing = await Booking.findOne({
       client: req.userId,
       date: data.date,
-      serviceType: data.serviceType
+      serviceType: data.serviceType,
     });
 
     if (existing) {
       return res.status(400).json({
-        message: "You have already booked this service on the same date."
+        message: "You have already booked this service on the same date.",
       });
     }
 
@@ -82,7 +96,7 @@ exports.cancelBooking = async (req, res) => {
 // ADMIN: FILTERED BOOKINGS LIST
 exports.adminListBookings = async (req, res) => {
   try {
-    const { status, serviceType, fromDate, toDate } = req.query;
+    const { status, serviceType, fromDate, toDate, contactMethod } = req.query;
 
     const query = {};
 
@@ -92,6 +106,10 @@ exports.adminListBookings = async (req, res) => {
 
     if (serviceType && serviceType !== "all") {
       query.serviceType = serviceType;
+    }
+
+    if (contactMethod && contactMethod !== "all") {
+      query.contactMethod = contactMethod; // "whatsapp" or "email"
     }
 
     if (fromDate || toDate) {
@@ -118,6 +136,8 @@ exports.exportBookingsCsv = async (req, res) => {
       .sort("-createdAt");
 
     const rows = [];
+
+    // Header row – now including contact columns
     rows.push(
       [
         "Client Name",
@@ -126,6 +146,8 @@ exports.exportBookingsCsv = async (req, res) => {
         "Date",
         "Time",
         "Status",
+        "Contact Method",
+        "Contact Value",
         "Created At",
       ].join(",")
     );
@@ -135,11 +157,13 @@ exports.exportBookingsCsv = async (req, res) => {
         [
           `"${b.client?.name || ""}"`,
           `"${b.client?.email || ""}"`,
-          `"${b.serviceType}"`,
-          `"${b.date}"`,
-          `"${b.time}"`,
-          `"${b.status}"`,
-          `"${b.createdAt.toISOString()}"`,
+          `"${b.serviceType || ""}"`,
+          `"${b.date || ""}"`,
+          `"${b.time || ""}"`,
+          `"${b.status || ""}"`,
+          `"${b.contactMethod || ""}"`,
+          `"${b.contactValue || ""}"`,
+          `"${b.createdAt ? b.createdAt.toISOString() : ""}"`,
         ].join(",")
       );
     });

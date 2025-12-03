@@ -8,6 +8,7 @@ router.post("/login", login);
 router.post("/admin/login", adminLogin);
 router.put("/update", auth, updateUser);
 
+
 router.get("/me", auth, me);
 
 module.exports = router;

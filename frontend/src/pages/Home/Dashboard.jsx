@@ -22,127 +22,154 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ FIXED: use PUT /bookings/cancel/:id instead of DELETE /bookings/:id
   const cancelBooking = async (id) => {
-    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+    if (!window.confirm("Do you really want to cancel this booking?")) return;
 
     try {
-      const res = await api.put(`/bookings/cancel/${id}`);
-
-      // Update UI without reloading
-      setBookings((prev) =>
-        prev.map((b) =>
-          b._id === id ? { ...b, status: "cancelled" } : b
-        )
-      );
-
-      alert(res.data?.message || "Booking cancelled.");
-    } catch (err) {
-      console.error("Cancel error:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Failed to cancel booking.");
+      await api.put(`/bookings/cancel/${id}`);
+      loadBookings();
+    } catch {
+      alert("Failed to cancel booking.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-10">
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white px-6 py-12">
 
-      {/* Welcome Message */}
+      {/* HEADER */}
       <motion.div
-        initial={{ opacity: 0, y: -30 }}
+        initial={{ opacity: 0, y: -25 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-10"
+        transition={{ duration: 0.6 }}
+        className="mb-12"
       >
-        <h1 className="text-4xl font-bold">Welcome, {user?.name} 👋</h1>
-        <p className="text-gray-400 mt-2">Here is your activity overview.</p>
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+          Welcome, {user?.name} 👋
+        </h1>
+        <p className="text-gray-400 mt-2 text-lg">
+          Your personal dashboard to manage bookings & updates.
+        </p>
 
         <button
           onClick={() => navigate("/book-service")}
-          className="mt-4 bg-pink-600 px-6 py-2 rounded-lg hover:bg-pink-700 transition"
+          className="mt-6 px-6 py-3 bg-pink-600 hover:bg-pink-700 shadow-lg rounded-xl text-white 
+                     hover:shadow-pink-500/30 transition-all duration-300"
         >
-          Book a New Service
+          + Book a New Service
         </button>
       </motion.div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+      {/* Quick Action Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-14">
+
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="p-6 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:shadow-lg hover:shadow-pink-500/20 transition"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-2xl 
+          bg-white/5 backdrop-blur-md 
+          border border-white/10 shadow-lg 
+          hover:shadow-pink-500/30 cursor-pointer transition"
           onClick={() => navigate("/gallery")}
         >
-          <h3 className="text-xl font-semibold">View Gallery</h3>
-          <p className="text-gray-400 text-sm mt-2">Explore our best work</p>
+          <h3 className="text-2xl font-semibold mb-2">📸 View Gallery</h3>
+          <p className="text-gray-400">Explore our stunning work</p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="p-6 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:shadow-lg hover:shadow-purple-500/20 transition"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-2xl 
+          bg-white/5 backdrop-blur-md 
+          border border-white/10 shadow-lg 
+          hover:shadow-purple-500/30 cursor-pointer transition"
           onClick={() => navigate("/packages")}
         >
-          <h3 className="text-xl font-semibold">View Packages</h3>
-          <p className="text-gray-400 text-sm mt-2">Wedding, Cinematic & more</p>
+          <h3 className="text-2xl font-semibold mb-2">🎁 Packages</h3>
+          <p className="text-gray-400">Wedding, Cinematic & More</p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="p-6 bg-gray-900 border border-gray-800 rounded-xl cursor-pointer hover:shadow-lg hover:shadow-blue-500/20 transition"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-2xl 
+          bg-white/5 backdrop-blur-md 
+          border border-white/10 shadow-lg 
+          hover:shadow-blue-500/30 cursor-pointer transition"
           onClick={() => navigate("/profile")}
         >
-          <h3 className="text-xl font-semibold">Profile</h3>
-          <p className="text-gray-400 text-sm mt-2">Update your details</p>
+          <h3 className="text-2xl font-semibold mb-2">👤 Profile</h3>
+          <p className="text-gray-400">Manage account settings</p>
         </motion.div>
+
       </div>
 
-      {/* My Bookings */}
-      <h2 className="text-3xl font-bold mb-4">My Bookings</h2>
+      {/* MY BOOKINGS SECTION */}
+      <motion.h2
+        initial={{ opacity: 0, y: -15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        className="text-4xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent"
+      >
+        My Bookings
+      </motion.h2>
 
       {bookings.length === 0 ? (
-        <p className="text-gray-400 mt-4">No bookings found.</p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center text-gray-400 mt-10"
+        >
+          <p>No bookings found yet 👀</p>
+          <button
+            onClick={() => navigate("/book-service")}
+            className="mt-4 bg-pink-600 px-6 py-2 rounded-xl hover:bg-pink-700 transition"
+          >
+            Book Now
+          </button>
+        </motion.div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse mt-4">
-            <thead>
-              <tr className="border-b border-gray-800 text-gray-400">
-                <th className="p-3">Service</th>
-                <th className="p-3">Date</th>
-                <th className="p-3">Time</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Actions</th>
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur">
+          <table className="w-full text-left">
+            <thead className="bg-white/10">
+              <tr className="text-gray-300">
+                <th className="p-4">Service</th>
+                <th className="p-4">Date</th>
+                <th className="p-4">Time</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {bookings.map((b) => (
-                <tr key={b._id} className="border-b border-gray-800">
-                  <td className="p-3">{b.serviceType}</td>
-                  <td className="p-3">{b.date}</td>
-                  <td className="p-3">{b.time}</td>
-                  <td className="p-3">
+                <tr key={b._id} className="border-t border-white/10">
+                  <td className="p-4">{b.serviceType}</td>
+                  <td className="p-4">{b.date}</td>
+                  <td className="p-4">{b.time}</td>
+
+                  <td className="p-4">
                     <span
-                      className={`px-3 py-1 rounded text-sm ${
+                      className={`px-3 py-1 rounded-lg text-sm font-semibold ${
                         b.status === "confirmed"
-                          ? "bg-green-700"
+                          ? "bg-green-700/40 text-green-300"
                           : b.status === "cancelled"
-                          ? "bg-red-700"
-                          : "bg-yellow-600"
+                          ? "bg-red-700/40 text-red-300"
+                          : "bg-yellow-600/40 text-yellow-300"
                       }`}
                     >
                       {b.status}
                     </span>
                   </td>
-                  <td className="p-3">
+
+                  <td className="p-4">
                     {b.status === "pending" ? (
                       <button
                         onClick={() => cancelBooking(b._id)}
-                        className="px-4 py-1 bg-red-600 rounded hover:bg-red-700 transition"
+                        className="px-4 py-1 bg-red-600 rounded-lg hover:bg-red-700 transition"
                       >
                         Cancel
                       </button>
                     ) : (
-                      "-"
+                      <span className="text-gray-500">—</span>
                     )}
                   </td>
                 </tr>
@@ -151,7 +178,6 @@ export default function Dashboard() {
           </table>
         </div>
       )}
-
     </div>
   );
 }

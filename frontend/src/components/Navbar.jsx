@@ -41,7 +41,9 @@ export default function Navbar() {
           {isGuest && (
             <>
               <Link to="/" className="hover:text-white">Home</Link>
+              <Link to="/about" className="hover:text-white">About</Link>
               <Link to="/gallery" className="hover:text-white">Gallery</Link>
+              <Link to ="/team" className="hover:text-white">Team</Link>
               <Link to="/packages" className="hover:text-white">Packages</Link>
 
               {/* COMBINED LOGIN / SIGNUP BUTTON */}
@@ -66,6 +68,7 @@ export default function Navbar() {
             <>
               <Link to="/gallery" className="hover:text-white">Gallery</Link>
               <Link to="/packages" className="hover:text-white">Packages</Link>
+              <Link to ="/team" className="hover:text-white">Team</Link>
               <Link
                 to="/book-service"
                 className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"

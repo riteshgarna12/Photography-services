@@ -57,9 +57,7 @@ export default function AdminDashboard() {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  const applyFilters = () => {
-    loadBookings();
-  };
+  const applyFilters = () => loadBookings();
 
   const exportCsv = async () => {
     try {
@@ -75,8 +73,37 @@ export default function AdminDashboard() {
       link.click();
       link.remove();
     } catch (err) {
-      console.error("CSV export error:", err);
       alert("Failed to export CSV");
+    }
+  };
+
+  // ===========================
+  // ACCEPT BOOKING (ADMIN)
+  // ===========================
+  const acceptBooking = async (id) => {
+    if (!window.confirm("Accept this booking?")) return;
+
+    try {
+      await api.put(`/bookings/accept/${id}`);
+      loadBookings();
+      loadStats();
+    } catch (err) {
+      alert("Failed to accept booking");
+    }
+  };
+
+  // ===========================
+  // CANCEL BOOKING (ADMIN)
+  // ===========================
+  const cancelBooking = async (id) => {
+    if (!window.confirm("Cancel this booking?")) return;
+
+    try {
+      await api.put(`/bookings/cancel/${id}`); // admin cancel also uses same endpoint
+      loadBookings();
+      loadStats();
+    } catch (err) {
+      alert("Failed to cancel booking");
     }
   };
 
@@ -130,9 +157,7 @@ export default function AdminDashboard() {
       {/* REVENUE */}
       <div className="mb-10 p-6 rounded bg-purple-900/40 border border-purple-500/40">
         <h3 className="text-xl font-bold">Total Revenue</h3>
-        <p className="text-3xl md:text-4xl font-bold mt-2">
-          ₹ {stats.revenue}
-        </p>
+        <p className="text-3xl md:text-4xl font-bold mt-2">₹ {stats.revenue}</p>
       </div>
 
       {/* CHARTS */}
@@ -172,7 +197,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* FILTERS + EXPORT */}
+      {/* FILTERS */}
       <div className="mb-4 flex flex-wrap gap-4 items-end">
         <div>
           <label className="block text-sm mb-1">Status</label>
@@ -243,7 +268,7 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* BOOKINGS TABLE */}
+      {/* BOOKINGS */}
       <div className="overflow-x-auto bg-gray-900 border border-gray-800 rounded-lg mt-4">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -254,8 +279,10 @@ export default function AdminDashboard() {
               <th className="p-3">Date</th>
               <th className="p-3">Time</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {bookings.map((b) => (
               <tr key={b._id} className="border-b border-gray-800">
@@ -264,6 +291,7 @@ export default function AdminDashboard() {
                 <td className="p-3">{b.serviceType}</td>
                 <td className="p-3">{b.date}</td>
                 <td className="p-3">{b.time}</td>
+
                 <td className="p-3">
                   <span
                     className={`px-3 py-1 rounded text-sm ${
@@ -277,11 +305,36 @@ export default function AdminDashboard() {
                     {b.status}
                   </span>
                 </td>
+
+                <td className="p-3 flex gap-2">
+                  {b.status === "pending" && (
+                    <>
+                      <button
+                        onClick={() => acceptBooking(b._id)}
+                        className="px-3 py-1 bg-green-600 rounded hover:bg-green-700"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => cancelBooking(b._id)}
+                        className="px-3 py-1 bg-red-600 rounded hover:bg-red-700"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+
+                  {b.status !== "pending" && <span>-</span>}
+                </td>
               </tr>
             ))}
+
             {bookings.length === 0 && (
               <tr>
-                <td colSpan="6" className="p-4 text-center text-gray-400">
+                <td
+                  colSpan="7"
+                  className="p-4 text-center text-gray-400"
+                >
                   No bookings found.
                 </td>
               </tr>

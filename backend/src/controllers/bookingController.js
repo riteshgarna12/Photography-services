@@ -180,3 +180,32 @@ exports.exportBookingsCsv = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// ADMIN: ACCEPT BOOKING
+exports.acceptBooking = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // Only admin can accept
+    if (req.userRole !== "admin") {
+      return res.status(403).json({ message: "Only admin can accept bookings" });
+    }
+
+    if (booking.status !== "pending") {
+      return res.status(400).json({
+        message: "Only pending bookings can be accepted"
+      });
+    }
+
+    booking.status = "confirmed";
+    await booking.save();
+
+    res.json({ message: "Booking accepted successfully", booking });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

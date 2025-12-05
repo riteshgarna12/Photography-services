@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [loadingStats, setLoadingStats] = useState(false);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [error, setError] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const [filters, setFilters] = useState({
     status: "all",
@@ -106,28 +107,32 @@ export default function AdminDashboard() {
   // Accept booking (admin)
   const acceptBooking = async (id) => {
     if (!window.confirm("Accept this booking?")) return;
-
+    setActionLoadingId(id);
     try {
       await api.put(`/bookings/accept/${id}`);
       await loadBookings();
       await loadStats();
     } catch (err) {
       console.error("Accept failed", err);
-      alert("Failed to accept booking");
+      alert(err?.response?.data?.message || "Failed to accept booking");
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
-  // Cancel booking (admin)
+  // Cancel booking (admin) -> calls admin-only endpoint
   const cancelBooking = async (id) => {
     if (!window.confirm("Cancel this booking?")) return;
-
+    setActionLoadingId(id);
     try {
-      await api.put(`/bookings/cancel/${id}`);
+      await api.put(`/bookings/admin/cancel/${id}`);
       await loadBookings();
       await loadStats();
     } catch (err) {
       console.error("Cancel failed", err);
-      alert("Failed to cancel booking");
+      alert(err?.response?.data?.message || "Failed to cancel booking");
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -362,14 +367,16 @@ export default function AdminDashboard() {
                           <button
                             onClick={() => acceptBooking(b._id)}
                             className="px-3 py-1 bg-green-600 rounded hover:bg-green-700"
+                            disabled={actionLoadingId === b._id}
                           >
-                            Accept
+                            {actionLoadingId === b._id ? "Processing..." : "Accept"}
                           </button>
                           <button
                             onClick={() => cancelBooking(b._id)}
                             className="px-3 py-1 bg-red-600 rounded hover:bg-red-700"
+                            disabled={actionLoadingId === b._id}
                           >
-                            Cancel
+                            {actionLoadingId === b._id ? "Processing..." : "Cancel"}
                           </button>
                         </>
                       ) : (

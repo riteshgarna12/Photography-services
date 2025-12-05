@@ -7,6 +7,7 @@ export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState(null); // id of booking being updated
 
   useEffect(() => {
     if (user?.role === "admin") load();
@@ -29,12 +30,32 @@ export default function AdminBookings() {
   };
 
   const updateStatus = async (id, status) => {
+    if (!id) {
+      console.warn("updateStatus called without id:", id, status);
+      alert("Invalid booking id.");
+      return;
+    }
+
+    // confirmation for cancelling
+    if (status === "cancelled" && !window.confirm("Are you sure you want to cancel this booking?")) {
+      return;
+    }
+
+    setActionLoadingId(id);
     try {
-      await api.put(`/bookings/${id}`, { status });
-      load();
+      if (status === "cancelled") {
+        // Call admin-only cancel endpoint
+        await api.put(`/bookings/admin/cancel/${id}`);
+      } else {
+        // Generic update (if your backend supports it)
+        await api.put(`/bookings/${id}`, { status });
+      }
+      await load();
     } catch (err) {
       console.error("Update failed", err);
-      alert("Failed to update status.");
+      alert(err?.response?.data?.message || "Failed to update status.");
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -68,11 +89,11 @@ export default function AdminBookings() {
                   {b.serviceType}
                 </h3>
                 <p className="text-muted">
-                  <strong>User:</strong> {b.client?.name}{" "}
-                  <span className="text-muted">({b.client?.email})</span>
+                  <strong>User:</strong> {b.client?.name || "—"}{" "}
+                  <span className="text-muted">({b.client?.email || "—"})</span>
                 </p>
-                <p className="text-muted"><strong>Date:</strong> {b.date}</p>
-                <p className="text-muted"><strong>Venue:</strong> {b.venue}, {b.city}</p>
+                <p className="text-muted"><strong>Date:</strong> {b.date || "—"}</p>
+                <p className="text-muted"><strong>Venue:</strong> {b.venue || "—"}, {b.city || "—"}</p>
               </div>
 
               <div className="text-right">
@@ -93,26 +114,29 @@ export default function AdminBookings() {
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 onClick={() => updateStatus(b._id, "confirmed")}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-60"
                 aria-label={`Confirm booking ${b._id}`}
+                disabled={actionLoadingId === b._id}
               >
-                Confirm
+                {actionLoadingId === b._id ? "Processing..." : "Confirm"}
               </button>
 
               <button
-                onClick={() => updateStatus(b._1d, "cancelled")}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+                onClick={() => updateStatus(b._id, "cancelled")}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:opacity-60"
                 aria-label={`Cancel booking ${b._id}`}
+                disabled={actionLoadingId === b._id}
               >
-                Cancel
+                {actionLoadingId === b._id ? "Processing..." : "Cancel"}
               </button>
 
               <button
                 onClick={() => updateStatus(b._id, "pending")}
-                className="px-4 py-2 bg-panel/80 border border-border text-text rounded-lg hover:bg-panel/95 transition"
+                className="px-4 py-2 bg-panel/80 border border-border text-text rounded-lg hover:bg-panel/95 transition disabled:opacity-60"
                 aria-label={`Mark booking ${b._id} pending`}
+                disabled={actionLoadingId === b._id}
               >
-                Mark Pending
+                {actionLoadingId === b._id ? "Processing..." : "Mark Pending"}
               </button>
             </div>
           </article>

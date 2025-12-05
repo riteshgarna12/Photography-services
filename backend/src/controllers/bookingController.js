@@ -92,6 +92,30 @@ exports.cancelBooking = async (req, res) => {
     res.status(500).json({ error: err.message || "Server error" });
   }
 };
+// In controllers/bookingController.js (add near other exports)
+
+exports.adminCancelBooking = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.status === "cancelled") {
+      return res.status(400).json({ message: "Booking already cancelled" });
+    }
+
+    booking.status = "cancelled";
+    await booking.save();
+
+    return res.json({ message: "Booking cancelled by admin", booking });
+  } catch (err) {
+    console.error("Admin cancel error:", err);
+    res.status(500).json({ error: err.message || "Server error" });
+  }
+};
 
 // ADMIN: FILTERED BOOKINGS LIST
 exports.adminListBookings = async (req, res) => {

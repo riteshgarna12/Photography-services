@@ -8,7 +8,8 @@ const {
   cancelBooking,
   adminListBookings,
   exportBookingsCsv,
-  acceptBooking,   // <-- FIX: add this
+  acceptBooking,
+  adminCancelBooking   
 } = require("../controllers/bookingController");
 
 // client
@@ -27,5 +28,8 @@ router.get("/admin/export", auth, admin, exportBookingsCsv);
 
 // admin: ACCEPT booking
 router.put("/accept/:id", auth, admin, acceptBooking);
+
+// admin cancel
+router.put("/admin/cancel/:id", auth, admin, adminCancelBooking);
 
 module.exports = router;

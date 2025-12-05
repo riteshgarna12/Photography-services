@@ -33,31 +33,29 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
-
+    <div className="min-h-screen bg-bg text-text flex items-center justify-center px-4 py-12">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg bg-black/60 backdrop-blur-xl border border-gray-800 p-8 rounded-xl shadow-2xl text-white"
+        className="w-full max-w-lg bg-panel/90 border border-border p-8 rounded-xl shadow-token"
       >
-        <h2 className="text-4xl font-bold mb-6 text-center">
+        <h2 className="text-4xl font-bold mb-6 text-center text-text">
           Create Account
         </h2>
 
         {error && (
-          <p className="bg-red-900/40 text-red-300 p-3 rounded mb-3 border border-red-700">
+          <p className="bg-[rgba(200,30,30,0.08)] text-[rgb(255,200,200)] p-3 rounded mb-3 border border-[rgba(200,30,30,0.2)]">
             {error}
           </p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <div>
-            <label className="text-gray-300">Full Name</label>
+            <label className="text-muted block mb-1">Full Name</label>
             <input
               type="text"
               name="name"
-              className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none"
+              className="w-full p-3 bg-panel/80 border border-border rounded-lg focus:border-accent-500 outline-none text-text"
               placeholder="Enter your full name"
               onChange={handleChange}
               required
@@ -65,11 +63,11 @@ export default function Signup() {
           </div>
 
           <div>
-            <label className="text-gray-300">Email</label>
+            <label className="text-muted block mb-1">Email</label>
             <input
               type="email"
               name="email"
-              className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none"
+              className="w-full p-3 bg-panel/80 border border-border rounded-lg focus:border-accent-500 outline-none text-text"
               placeholder="Enter email"
               onChange={handleChange}
               required
@@ -77,11 +75,11 @@ export default function Signup() {
           </div>
 
           <div>
-            <label className="text-gray-300">Password</label>
+            <label className="text-muted block mb-1">Password</label>
             <input
               type="password"
               name="password"
-              className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none"
+              className="w-full p-3 bg-panel/80 border border-border rounded-lg focus:border-accent-500 outline-none text-text"
               placeholder="Create a password"
               onChange={handleChange}
               required
@@ -89,11 +87,12 @@ export default function Signup() {
           </div>
 
           <div>
-            <label className="text-gray-300">Select Role</label>
+            <label className="text-muted block mb-1">Select Role</label>
             <select
               name="role"
-              className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:border-blue-500 outline-none"
+              value={form.role}
               onChange={handleChange}
+              className="w-full p-3 bg-panel/80 border border-border rounded-lg focus:border-accent-500 outline-none text-text"
             >
               <option value="client">Client</option>
               <option value="photographer">Photographer</option>
@@ -104,15 +103,16 @@ export default function Signup() {
           </div>
 
           <button
-            className="w-full p-3 bg-blue-600 hover:bg-blue-700 transition font-semibold rounded-lg text-white shadow-lg"
+            type="submit"
+            className="w-full p-3 bg-accent-600 hover:bg-accent-500 transition font-semibold rounded-lg text-white shadow-token"
           >
             Sign Up
           </button>
         </form>
 
-        <p className="text-center text-gray-400 mt-4">
+        <p className="text-center text-muted mt-4">
           Already have an account?{" "}
-          <Link to="/login" className="text-pink-500 hover:underline">
+          <Link to="/login" className="text-accent-500 hover:underline">
             Login
           </Link>
         </p>

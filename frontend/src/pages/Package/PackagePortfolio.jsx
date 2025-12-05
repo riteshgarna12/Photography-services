@@ -6,8 +6,7 @@ import { motion } from "framer-motion";
  * PackagePortfolio
  * Route: /packages/:slug/portfolio
  *
- * NOTE: This uses a local static images list per package.
- * You can replace `GALLERY_MAP` entries with URLs from your backend (or cloudinary).
+ * Uses local static images list per package (GALLERY_MAP).
  */
 
 const GALLERY_MAP = {
@@ -66,9 +65,7 @@ function useKeyboardNavigation({ open, onClose, onPrev, onNext }) {
 export default function PackagePortfolio() {
   const { slug } = useParams();
   const navigateSlug = slug || "wedding-photography";
-  // map slug names to keys used in GALLERY_MAP (normalize)
   const key = slugToKey(navigateSlug);
-
   const images = GALLERY_MAP[key] || GALLERY_MAP["wedding-photography"];
 
   const [open, setOpen] = useState(false);
@@ -88,28 +85,38 @@ export default function PackagePortfolio() {
     return () => (document.body.style.overflow = "auto");
   }, [open]);
 
+  // responsive column count (keeps same behavior you had)
+  const getColumnCount = () =>
+    typeof window !== "undefined"
+      ? window.innerWidth >= 1024
+        ? 3
+        : window.innerWidth >= 640
+        ? 2
+        : 1
+      : 1;
+
   return (
-    <div className="bg-black text-white min-h-screen pb-20">
+    <div className="bg-bg text-text min-h-screen pb-20">
       {/* Header */}
       <div
-        className="h-56 md:h-72 bg-cover bg-center flex items-center justify-center"
+        className="relative h-56 md:h-72 bg-cover bg-center flex items-center justify-center"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1600&q=80&auto=format&fit=crop')",
         }}
       >
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-panel/70" />
         <div className="relative z-10 text-center px-6">
-          <h1 className="text-3xl md:text-4xl font-extrabold">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-text">
             {friendlyTitle(slug)} Portfolio
           </h1>
-          <p className="text-gray-300 mt-2">
+          <p className="text-muted mt-2">
             A curated selection of our best work for this package.
           </p>
           <div className="mt-4">
             <Link
               to="/packages"
-              className="inline-block px-4 py-2 bg-gray-800/70 border border-gray-700 rounded text-sm"
+              className="inline-block px-4 py-2 bg-panel border border-border rounded text-sm text-text hover:bg-panel/90 transition"
             >
               ← Back to Packages
             </Link>
@@ -120,8 +127,8 @@ export default function PackagePortfolio() {
       {/* Grid */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 mt-12">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Gallery</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-2xl font-bold text-text">Gallery</h2>
+          <p className="text-sm text-muted">
             {images.length} photos — click to enlarge
           </p>
         </div>
@@ -129,7 +136,7 @@ export default function PackagePortfolio() {
         <div
           className="masonry-3-cols gap-4"
           style={{
-            columnCount: window.innerWidth >= 1024 ? 3 : window.innerWidth >= 640 ? 2 : 1,
+            columnCount: getColumnCount(),
             columnGap: "1rem",
           }}
         >
@@ -161,9 +168,9 @@ export default function PackagePortfolio() {
           aria-modal="true"
           role="dialog"
         >
-          {/* dark backdrop */}
+          {/* backdrop */}
           <div
-            className="absolute inset-0 bg-black/85"
+            className="absolute inset-0 bg-panel/90 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
 
@@ -174,7 +181,7 @@ export default function PackagePortfolio() {
             className="relative z-10 max-w-5xl mx-auto w-full px-4"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="text-sm text-gray-300">
+              <div className="text-sm text-muted">
                 {index + 1} / {images.length}
               </div>
 
@@ -183,32 +190,35 @@ export default function PackagePortfolio() {
                   onClick={() =>
                     setIndex((i) => (i - 1 + images.length) % images.length)
                   }
-                  className="px-3 py-2 bg-gray-800 rounded hover:bg-gray-700"
+                  className="px-3 py-2 bg-panel border border-border rounded hover:bg-panel/95 transition text-text"
+                  aria-label="Previous image"
                 >
                   Prev
                 </button>
 
                 <button
                   onClick={() => setOpen(false)}
-                  className="px-3 py-2 bg-red-600 rounded hover:bg-red-500"
+                  className="px-3 py-2 bg-red-600 rounded hover:bg-red-500 text-white transition"
+                  aria-label="Close gallery"
                 >
                   Close
                 </button>
 
                 <button
                   onClick={() => setIndex((i) => (i + 1) % images.length)}
-                  className="px-3 py-2 bg-gray-800 rounded hover:bg-gray-700"
+                  className="px-3 py-2 bg-panel border border-border rounded hover:bg-panel/95 transition text-text"
+                  aria-label="Next image"
                 >
                   Next
                 </button>
               </div>
             </div>
 
-            <div className="bg-black rounded-lg overflow-hidden shadow-lg">
+            <div className="bg-panel rounded-lg overflow-hidden shadow-token">
               <img
                 src={`${images[index]}`}
                 alt={`large-${index}`}
-                className="w-full h-[70vh] object-contain bg-black"
+                className="w-full h-[70vh] object-contain bg-panel"
               />
             </div>
           </motion.div>
@@ -222,7 +232,6 @@ export default function PackagePortfolio() {
 function slugToKey(slug) {
   if (!slug) return "wedding-photography";
   const s = slug.toLowerCase();
-  // common slugs mapping
   if (s.includes("wedding")) return "wedding-photography";
   if (s.includes("pre")) return "pre-wedding-shoot";
   if (s.includes("cinematic")) return "cinematic-video-shoot";

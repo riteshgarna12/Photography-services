@@ -20,6 +20,9 @@ export default function AdminDashboard() {
   const { user } = useContext(AuthContext);
   const [stats, setStats] = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [error, setError] = useState("");
 
   const [filters, setFilters] = useState({
     status: "all",
@@ -33,24 +36,43 @@ export default function AdminDashboard() {
       loadStats();
       loadBookings();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadStats = async () => {
-    const res = await api.get("/admin/stats");
-    setStats(res.data);
+    setLoadingStats(true);
+    try {
+      const res = await api.get("/admin/stats");
+      setStats(res.data || {});
+    } catch (err) {
+      console.error("Failed to load stats", err);
+      setError("Failed to load statistics.");
+    } finally {
+      setLoadingStats(false);
+    }
   };
 
   const loadBookings = async () => {
-    const params = new URLSearchParams();
+    setLoadingBookings(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
 
-    if (filters.status !== "all") params.append("status", filters.status);
-    if (filters.serviceType !== "all")
-      params.append("serviceType", filters.serviceType);
-    if (filters.fromDate) params.append("fromDate", filters.fromDate);
-    if (filters.toDate) params.append("toDate", filters.toDate);
+      if (filters.status !== "all") params.append("status", filters.status);
+      if (filters.serviceType !== "all")
+        params.append("serviceType", filters.serviceType);
+      if (filters.fromDate) params.append("fromDate", filters.fromDate);
+      if (filters.toDate) params.append("toDate", filters.toDate);
 
-    const res = await api.get(`/bookings/admin/list?${params.toString()}`);
-    setBookings(res.data);
+      const res = await api.get(`/bookings/admin/list?${params.toString()}`);
+      setBookings(res.data || []);
+    } catch (err) {
+      console.error("Failed to load bookings", err);
+      setError("Failed to load bookings.");
+      setBookings([]);
+    } finally {
+      setLoadingBookings(false);
+    }
   };
 
   const handleFilterChange = (e) => {
@@ -65,282 +87,301 @@ export default function AdminDashboard() {
         responseType: "blob",
       });
 
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const blob = new Blob([res.data]);
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "bookings_export.csv");
       document.body.appendChild(link);
       link.click();
       link.remove();
+      // free memory
+      window.URL.revokeObjectURL(url);
     } catch (err) {
+      console.error("Export failed", err);
       alert("Failed to export CSV");
     }
   };
 
-  // ===========================
-  // ACCEPT BOOKING (ADMIN)
-  // ===========================
+  // Accept booking (admin)
   const acceptBooking = async (id) => {
     if (!window.confirm("Accept this booking?")) return;
 
     try {
       await api.put(`/bookings/accept/${id}`);
-      loadBookings();
-      loadStats();
+      await loadBookings();
+      await loadStats();
     } catch (err) {
+      console.error("Accept failed", err);
       alert("Failed to accept booking");
     }
   };
 
-  // ===========================
-  // CANCEL BOOKING (ADMIN)
-  // ===========================
+  // Cancel booking (admin)
   const cancelBooking = async (id) => {
     if (!window.confirm("Cancel this booking?")) return;
 
     try {
-      await api.put(`/bookings/cancel/${id}`); // admin cancel also uses same endpoint
-      loadBookings();
-      loadStats();
+      await api.put(`/bookings/cancel/${id}`);
+      await loadBookings();
+      await loadStats();
     } catch (err) {
+      console.error("Cancel failed", err);
       alert("Failed to cancel booking");
     }
   };
 
   if (!user || user.role !== "admin") {
     return (
-      <p className="text-center text-red-500 mt-10">Access Denied (Admin only)</p>
+      <div className="min-h-[40vh] flex items-center justify-center p-6">
+        <p className="text-[rgb(255,120,120)]">Access Denied (Admin only)</p>
+      </div>
     );
   }
 
-  if (!stats) return <p className="text-center mt-10 text-white">Loading...</p>;
+  if (loadingStats || !stats) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center p-6 bg-bg text-text">
+        <p className="text-muted">Loading dashboard…</p>
+      </div>
+    );
+  }
 
   const pieData = [
-    { name: "Pending", value: stats.pending },
-    { name: "Confirmed", value: stats.confirmed },
-    { name: "Cancelled", value: stats.cancelled },
+    { name: "Pending", value: stats.pending || 0 },
+    { name: "Confirmed", value: stats.confirmed || 0 },
+    { name: "Cancelled", value: stats.cancelled || 0 },
   ];
 
-  const COLORS = ["#fbbf24", "#10b981", "#ef4444"];
+  const COLORS = ["#fbbf24", "#10b981", "#ef4444"]; // warning, success, danger
 
   const barData = [
-    { name: "Total", count: stats.totalBookings },
-    { name: "Confirmed", count: stats.confirmed },
-    { name: "Pending", count: stats.pending },
-    { name: "Cancelled", count: stats.cancelled },
+    { name: "Total", count: stats.totalBookings || 0 },
+    { name: "Confirmed", count: stats.confirmed || 0 },
+    { name: "Pending", count: stats.pending || 0 },
+    { name: "Cancelled", count: stats.cancelled || 0 },
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-10">
-      <h2 className="text-4xl font-bold mb-6">Admin Dashboard</h2>
+    <div className="min-h-screen bg-bg text-text px-6 py-10">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-4xl font-bold mb-6">Admin Dashboard</h2>
 
-      {/* STATS CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="p-4 rounded bg-blue-900/40 border border-blue-500/40">
-          <h3 className="text-lg">Total Bookings</h3>
-          <p className="text-3xl font-bold">{stats.totalBookings}</p>
-        </div>
-        <div className="p-4 rounded bg-yellow-900/40 border border-yellow-500/40">
-          <h3 className="text-lg">Pending</h3>
-          <p className="text-3xl font-bold">{stats.pending}</p>
-        </div>
-        <div className="p-4 rounded bg-green-900/40 border border-green-500/40">
-          <h3 className="text-lg">Confirmed</h3>
-          <p className="text-3xl font-bold">{stats.confirmed}</p>
-        </div>
-        <div className="p-4 rounded bg-red-900/40 border border-red-500/40">
-          <h3 className="text-lg">Cancelled</h3>
-          <p className="text-3xl font-bold">{stats.cancelled}</p>
-        </div>
-      </div>
+        {/* ERROR */}
+        {error && (
+          <div className="mb-6 p-3 rounded bg-[rgba(255,80,80,0.06)] border border-[rgba(255,80,80,0.12)] text-[rgb(255,180,180)]">
+            {error}
+          </div>
+        )}
 
-      {/* REVENUE */}
-      <div className="mb-10 p-6 rounded bg-purple-900/40 border border-purple-500/40">
-        <h3 className="text-xl font-bold">Total Revenue</h3>
-        <p className="text-3xl md:text-4xl font-bold mt-2">₹ {stats.revenue}</p>
-      </div>
+        {/* STATS CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="p-4 rounded bg-panel border border-border shadow-token">
+            <h3 className="text-lg text-muted">Total Bookings</h3>
+            <p className="text-3xl font-bold text-text">{stats.totalBookings || 0}</p>
+          </div>
 
-      {/* CHARTS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <div className="p-4 bg-gray-900 rounded border border-gray-700">
-          <h3 className="text-xl font-bold mb-3">Booking Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={100}
-                dataKey="value"
-                label
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index]} />
-                ))}
-              </Pie>
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="p-4 rounded bg-panel border border-border shadow-token">
+            <h3 className="text-lg text-muted">Pending</h3>
+            <p className="text-3xl font-bold text-text">{stats.pending || 0}</p>
+          </div>
+
+          <div className="p-4 rounded bg-panel border border-border shadow-token">
+            <h3 className="text-lg text-muted">Confirmed</h3>
+            <p className="text-3xl font-bold text-text">{stats.confirmed || 0}</p>
+          </div>
+
+          <div className="p-4 rounded bg-panel border border-border shadow-token">
+            <h3 className="text-lg text-muted">Cancelled</h3>
+            <p className="text-3xl font-bold text-text">{stats.cancelled || 0}</p>
+          </div>
         </div>
 
-        <div className="p-4 bg-gray-900 rounded border border-gray-700">
-          <h3 className="text-xl font-bold mb-3">Booking Summary</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={barData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* FILTERS */}
-      <div className="mb-4 flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-sm mb-1">Status</label>
-          <select
-            name="status"
-            value={filters.status}
-            onChange={handleFilterChange}
-            className="bg-gray-900 border border-gray-700 px-3 py-2 rounded"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+        {/* REVENUE */}
+        <div className="mb-10 p-6 rounded bg-panel border border-border shadow-token">
+          <h3 className="text-xl font-bold text-text">Total Revenue</h3>
+          <p className="text-3xl md:text-4xl font-bold text-text mt-2">₹ {stats.revenue || 0}</p>
         </div>
 
-        <div>
-          <label className="block text-sm mb-1">Service Type</label>
-          <select
-            name="serviceType"
-            value={filters.serviceType}
-            onChange={handleFilterChange}
-            className="bg-gray-900 border border-gray-700 px-3 py-2 rounded"
-          >
-            <option value="all">All</option>
-            <option value="Wedding Photography">Wedding Photography</option>
-            <option value="Cinematic Videography">Cinematic Videography</option>
-            <option value="Drone Shoot">Drone Shoot</option>
-            <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
-            <option value="Traditional Photography">Traditional Photography</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm mb-1">From Date</label>
-          <input
-            type="date"
-            name="fromDate"
-            value={filters.fromDate}
-            onChange={handleFilterChange}
-            className="bg-gray-900 border border-gray-700 px-3 py-2 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm mb-1">To Date</label>
-          <input
-            type="date"
-            name="toDate"
-            value={filters.toDate}
-            onChange={handleFilterChange}
-            className="bg-gray-900 border border-gray-700 px-3 py-2 rounded"
-          />
-        </div>
-
-        <button
-          onClick={applyFilters}
-          className="bg-pink-600 px-5 py-2 rounded hover:bg-pink-700"
-        >
-          Apply Filters
-        </button>
-
-        <button
-          onClick={exportCsv}
-          className="bg-green-600 px-5 py-2 rounded hover:bg-green-700"
-        >
-          Export CSV
-        </button>
-      </div>
-
-      {/* BOOKINGS */}
-      <div className="overflow-x-auto bg-gray-900 border border-gray-800 rounded-lg mt-4">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-gray-700 text-gray-400">
-              <th className="p-3">Client</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Service</th>
-              <th className="p-3">Date</th>
-              <th className="p-3">Time</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {bookings.map((b) => (
-              <tr key={b._id} className="border-b border-gray-800">
-                <td className="p-3">{b.client?.name}</td>
-                <td className="p-3 text-gray-400">{b.client?.email}</td>
-                <td className="p-3">{b.serviceType}</td>
-                <td className="p-3">{b.date}</td>
-                <td className="p-3">{b.time}</td>
-
-                <td className="p-3">
-                  <span
-                    className={`px-3 py-1 rounded text-sm ${
-                      b.status === "confirmed"
-                        ? "bg-green-700"
-                        : b.status === "cancelled"
-                        ? "bg-red-700"
-                        : "bg-yellow-600"
-                    }`}
-                  >
-                    {b.status}
-                  </span>
-                </td>
-
-                <td className="p-3 flex gap-2">
-                  {b.status === "pending" && (
-                    <>
-                      <button
-                        onClick={() => acceptBooking(b._id)}
-                        className="px-3 py-1 bg-green-600 rounded hover:bg-green-700"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => cancelBooking(b._id)}
-                        className="px-3 py-1 bg-red-600 rounded hover:bg-red-700"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  )}
-
-                  {b.status !== "pending" && <span>-</span>}
-                </td>
-              </tr>
-            ))}
-
-            {bookings.length === 0 && (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="p-4 text-center text-gray-400"
+        {/* CHARTS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          <div className="p-4 bg-panel rounded border border-border">
+            <h3 className="text-xl font-bold mb-3 text-text">Booking Status Distribution</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={100}
+                  dataKey="value"
+                  label
                 >
-                  No bookings found.
-                </td>
+                  {pieData.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index]} />
+                  ))}
+                </Pie>
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="p-4 bg-panel rounded border border-border">
+            <h3 className="text-xl font-bold mb-3 text-text">Booking Summary</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={barData}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* FILTERS */}
+        <div className="mb-4 flex flex-wrap gap-4 items-end">
+          <div>
+            <label className="block text-sm text-muted mb-1">Status</label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              className="bg-panel border border-border px-3 py-2 rounded"
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm text-muted mb-1">Service Type</label>
+            <select
+              name="serviceType"
+              value={filters.serviceType}
+              onChange={handleFilterChange}
+              className="bg-panel border border-border px-3 py-2 rounded"
+            >
+              <option value="all">All</option>
+              <option value="Wedding Photography">Wedding Photography</option>
+              <option value="Cinematic Videography">Cinematic Videography</option>
+              <option value="Drone Shoot">Drone Shoot</option>
+              <option value="Pre-Wedding Shoot">Pre-Wedding Shoot</option>
+              <option value="Traditional Photography">Traditional Photography</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm text-muted mb-1">From Date</label>
+            <input
+              type="date"
+              name="fromDate"
+              value={filters.fromDate}
+              onChange={handleFilterChange}
+              className="bg-panel border border-border px-3 py-2 rounded"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-muted mb-1">To Date</label>
+            <input
+              type="date"
+              name="toDate"
+              value={filters.toDate}
+              onChange={handleFilterChange}
+              className="bg-panel border border-border px-3 py-2 rounded"
+            />
+          </div>
+
+          <button onClick={applyFilters} className="bg-accent-600 px-5 py-2 rounded hover:bg-accent-500">
+            Apply Filters
+          </button>
+
+          <button onClick={exportCsv} className="bg-green-600 px-5 py-2 rounded hover:bg-green-700">
+            Export CSV
+          </button>
+        </div>
+
+        {/* BOOKINGS TABLE */}
+        <div className="overflow-x-auto bg-panel border border-border rounded-lg mt-4">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-border text-muted">
+                <th className="p-3">Client</th>
+                <th className="p-3">Email</th>
+                <th className="p-3">Service</th>
+                <th className="p-3">Date</th>
+                <th className="p-3">Time</th>
+                <th className="p-3">Status</th>
+                <th className="p-3">Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {loadingBookings ? (
+                <tr>
+                  <td colSpan="7" className="p-6 text-center text-muted">
+                    Loading bookings…
+                  </td>
+                </tr>
+              ) : bookings.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="p-4 text-center text-muted">
+                    No bookings found.
+                  </td>
+                </tr>
+              ) : (
+                bookings.map((b) => (
+                  <tr key={b._id} className="border-b border-border">
+                    <td className="p-3 text-text">{b.client?.name}</td>
+                    <td className="p-3 text-muted">{b.client?.email}</td>
+                    <td className="p-3 text-text">{b.serviceType}</td>
+                    <td className="p-3 text-text">{b.date}</td>
+                    <td className="p-3 text-text">{b.time}</td>
+
+                    <td className="p-3">
+                      <span
+                        className={`px-3 py-1 rounded text-sm ${
+                          b.status === "confirmed"
+                            ? "bg-green-700 text-white"
+                            : b.status === "cancelled"
+                            ? "bg-red-700 text-white"
+                            : "bg-yellow-600 text-white"
+                        }`}
+                      >
+                        {b.status}
+                      </span>
+                    </td>
+
+                    <td className="p-3 flex gap-2">
+                      {b.status === "pending" ? (
+                        <>
+                          <button
+                            onClick={() => acceptBooking(b._id)}
+                            className="px-3 py-1 bg-green-600 rounded hover:bg-green-700"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => cancelBooking(b._id)}
+                            className="px-3 py-1 bg-red-600 rounded hover:bg-red-700"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -1,21 +1,53 @@
 // src/components/Navbar.jsx
-import React, { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMenu, FiX } from "react-icons/fi";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [mobileMenu, setMobileMenu] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
+  const profileRef = useRef(null);
+
+  // hide Home link when on dashboard or admin routes
+  const hideHome = location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin");
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = mobileMenu ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenu]);
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    logout();
+    try {
+      localStorage.removeItem("token");
+    } catch (err) {
+      // ignore
+    }
+    logout?.();
     setProfileMenu(false);
     setMobileMenu(false);
-    window.location.href = "/";
+    // send user to login so they must log in again
+    navigate("/");
   };
 
   const isGuest = !user;
@@ -23,236 +55,163 @@ export default function Navbar() {
   const isAdmin = user?.role === "admin";
 
   return (
-    <nav className="bg-black/90 backdrop-blur-lg shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-
-        {/* LOGO */}
-        <Link
-          to="/"
-          className="text-3xl font-bold text-white hover:text-pink-500 transition"
-        >
-          PhotoPro
-        </Link>
-
-        {/* DESKTOP MENU */}
-        <div className="hidden md:flex items-center gap-6 text-gray-300">
-
-          {/* GUEST LINKS */}
-          {isGuest && (
-            <>
-              <Link to="/" className="hover:text-white">Home</Link>
-              <Link to="/about" className="hover:text-white">About</Link>
-              <Link to="/gallery" className="hover:text-white">Gallery</Link>
-              <Link to ="/team" className="hover:text-white">Team</Link>
-              <Link to="/packages" className="hover:text-white">Packages</Link>
-
-              {/* COMBINED LOGIN / SIGNUP BUTTON */}
-              <Link
-                to="/login"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow"
-              >
-                Login / Sign Up
-              </Link>
-
-              <Link
-                to="/admin/login"
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 shadow"
-              >
-                Admin Login
-              </Link>
-            </>
-          )}
-
-          {/* NORMAL USER */}
-          {isUser && (
-            <>
-              <Link to="/gallery" className="hover:text-white">Gallery</Link>
-              <Link to="/packages" className="hover:text-white">Packages</Link>
-              <Link to ="/team" className="hover:text-white">Team</Link>
-              <Link
-                to="/book-service"
-                className="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-              >
-                Book Service
-              </Link>
-            </>
-          )}
-
-          {/* ADMIN */}
-          {isAdmin && (
-            <Link
-              to="/admin/dashboard"
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            >
-              Admin Panel
-            </Link>
-          )}
-
-          {/* PROFILE AVATAR + DROPDOWN */}
-          {user && (
-            <div className="relative">
-              <button
-                onClick={() => setProfileMenu(!profileMenu)}
-                className="flex items-center gap-2"
-              >
-                <div className="w-10 h-10 bg-pink-600 flex items-center justify-center text-white rounded-full font-bold text-lg">
-                  {user.name?.charAt(0)?.toUpperCase() || "C"}
-                </div>
-              </button>
-
-              <AnimatePresence>
-                {profileMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-3 bg-gray-900 w-48 rounded-xl shadow-lg border border-gray-800 p-3 text-sm"
-                  >
-                    {isUser && (
-                      <>
-                        <Link
-                          to="/dashboard"
-                          onClick={() => setProfileMenu(false)}
-                          className="block px-3 py-2 hover:bg-gray-800 rounded"
-                        >
-                          Dashboard
-                        </Link>
-                        <Link
-                          to="/profile"
-                          onClick={() => setProfileMenu(false)}
-                          className="block px-3 py-2 hover:bg-gray-800 rounded"
-                        >
-                          Profile
-                        </Link>
-                      </>
-                    )}
-
-                    {isAdmin && (
-                      <Link
-                        to="/admin/dashboard"
-                        onClick={() => setProfileMenu(false)}
-                        className="block px-3 py-2 hover:bg-gray-800 rounded"
-                      >
-                        Admin Panel
-                      </Link>
-                    )}
-
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 mt-1 bg-red-600 hover:bg-red-700 text-white rounded"
-                    >
-                      Logout
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-
-        {/* MOBILE MENU BUTTON */}
-        <button
-          className="text-white text-3xl md:hidden"
-          onClick={() => setMobileMenu(true)}
-        >
-          <FiMenu />
-        </button>
-      </div>
-
-      {/* MOBILE MENU */}
-      <AnimatePresence>
-        {mobileMenu && (
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black text-white p-8 z-50 md:hidden"
+    <nav
+      className={`bg-panel/95 backdrop-blur-lg shadow-token sticky top-0 z-50 border-b border-border ${mobileMenu ? "min-h-screen" : "min-h-[64px]"}`}
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div
+        className={`w-full px-4 sm:px-6 lg:px-8 ${mobileMenu ? "min-h-screen flex flex-col items-start py-6" : "min-h-[64px] flex items-center justify-between"}`}
+      >
+        {/* TOP ROW */}
+        <div className="w-full flex items-center justify-between">
+          <Link
+            to="/"
+            className="text-2xl sm:text-3xl font-bold text-text dark:text-white hover:text-accent-600 transition"
+            aria-label="PhotoPro home"
+            onClick={() => setMobileMenu(false)}
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Menu</h2>
-              <FiX
-                className="text-3xl cursor-pointer"
-                onClick={() => setMobileMenu(false)}
-              />
-            </div>
+            PhotoPro
+          </Link>
 
-            <div className="flex flex-col gap-5 text-xl">
-
-              {/* Guest mobile menu */}
+          <div className="flex items-center gap-4">
+            {/* Desktop menu */}
+            <div className="hidden md:flex items-center gap-6 text-text dark:text-muted">
+              {/* For guests: show full nav (except Home if hideHome) */}
               {isGuest && (
                 <>
-                  <Link to="/" onClick={() => setMobileMenu(false)}>Home</Link>
-                  <Link to="/gallery" onClick={() => setMobileMenu(false)}>Gallery</Link>
-                  <Link to="/packages" onClick={() => setMobileMenu(false)}>Packages</Link>
+                  {!hideHome && <Link to="/" className="hover:text-accent-600 transition">Home</Link>}
+                  <Link to="/about" className="hover:text-accent-600 transition">About</Link>
+                  <Link to="/gallery" className="hover:text-accent-600 transition">Gallery</Link>
+                  <Link to="/team" className="hover:text-accent-600 transition">Team</Link>
+                  <Link to="/packages" className="hover:text-accent-600 transition">Packages</Link>
 
-                  {/* Combined Login / Sign Up */}
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileMenu(false)}
-                    className="text-blue-400"
-                  >
-                    Login / Sign Up
-                  </Link>
-
-                  <Link
-                    to="/admin/login"
-                    onClick={() => setMobileMenu(false)}
-                    className="text-purple-400"
-                  >
-                    Admin Login
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link to="/login" className="px-4 py-2 bg-accent-600 text-white rounded hover:bg-accent-500 shadow">Login / Sign Up</Link>
+                    <Link to="/admin/login" className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 shadow">Admin Login</Link>
+                  </div>
                 </>
               )}
 
-              {/* User mobile menu */}
+              {/* For logged-in normal users: minimal bar (Book Service + avatar/profile) */}
               {isUser && (
                 <>
-                  <Link to="/gallery" onClick={() => setMobileMenu(false)}>Gallery</Link>
-                  <Link to="/packages" onClick={() => setMobileMenu(false)}>Packages</Link>
+                  <Link to="/book-service" className="px-4 py-2 bg-accent-600 text-white rounded hover:bg-accent-500">Book Service</Link>
 
-                  <Link
-                    to="/book-service"
-                    onClick={() => setMobileMenu(false)}
-                    className="text-pink-400"
-                  >
-                    Book Service
-                  </Link>
+                  {/* Profile avatar + dropdown */}
+                  {user && (
+                    <div className="relative" ref={profileRef}>
+                      <button
+                        onClick={() => setProfileMenu((s) => !s)}
+                        aria-haspopup="true"
+                        aria-expanded={profileMenu}
+                        aria-label="Open profile menu"
+                        className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-full"
+                      >
+                        <div className="w-10 h-10 bg-accent-600 flex items-center justify-center text-white rounded-full font-bold text-lg" aria-hidden>
+                          {user.name?.charAt(0)?.toUpperCase() || "C"}
+                        </div>
+                      </button>
 
-                  <Link to="/dashboard" onClick={() => setMobileMenu(false)}>Dashboard</Link>
-                  <Link to="/profile" onClick={() => setMobileMenu(false)}>Profile</Link>
-
-                  <button
-                    onClick={handleLogout}
-                    className="text-red-500 text-left mt-4"
-                  >
-                    Logout
-                  </button>
+                      <AnimatePresence>
+                        {profileMenu && (
+                          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="absolute right-0 mt-3 bg-panel w-48 rounded-xl shadow-lg border border-border p-3 text-sm" role="menu" aria-label="Profile options">
+                            <Link to="/dashboard" onClick={() => setProfileMenu(false)} className="block px-3 py-2 hover:bg-panel/80 rounded" role="menuitem">Dashboard</Link>
+                            <Link to="/profile" onClick={() => setProfileMenu(false)} className="block px-3 py-2 hover:bg-panel/80 rounded" role="menuitem">Profile</Link>
+                            <button onClick={handleLogout} className="w-full text-left px-3 py-2 mt-1 bg-red-600 hover:bg-red-700 text-white rounded" role="menuitem">Logout</button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
                 </>
               )}
 
-              {/* Admin mobile menu */}
+              {/* For admins: show admin-specific links */}
               {isAdmin && (
                 <>
-                  <Link
-                    to="/admin/dashboard"
-                    onClick={() => setMobileMenu(false)}
-                  >
-                    Admin Panel
-                  </Link>
-
-                  <button
-                    onClick={handleLogout}
-                    className="text-red-500 text-left mt-4"
-                  >
-                    Logout
-                  </button>
+                  {!hideHome && <Link to="/" className="hover:text-accent-600 transition">Home</Link>}
+                  <Link to="/admin/dashboard" className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Admin Panel</Link>
+                  <div className="flex items-center gap-2">
+                    <button onClick={handleLogout} className="px-3 py-2 text-sm rounded bg-red-600 text-white hover:bg-red-700">Logout</button>
+                  </div>
                 </>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+            {/* single theme toggle (visible >= sm) */}
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
+
+            {/* Mobile controls */}
+            <div className="md:hidden flex items-center gap-3">
+              <button
+                className="text-text dark:text-white text-2xl p-2 rounded focus:outline-none focus:ring-2 focus:ring-offset-2"
+                onClick={() => setMobileMenu((s) => !s)}
+                aria-label={mobileMenu ? "Close menu" : "Open menu"}
+              >
+                {mobileMenu ? <FiX /> : <FiMenu />}
+              </button>
+
+              {/* tiny theme toggle on very small screens */}
+              <div className="sm:hidden">
+                <ThemeToggle />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MOBILE MENU (simplified for logged-in users) */}
+        <AnimatePresence>
+          {mobileMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18 }}
+              className="w-full md:hidden mt-6 px-2 overflow-auto"
+            >
+              <nav className="flex flex-col gap-4 text-lg w-full">
+                {/* if guest: full nav (but hide Home on dashboard/admin routes) */}
+                {isGuest && (
+                  <>
+                    {!hideHome && <Link to="/" onClick={() => setMobileMenu(false)} className="font-medium">Home</Link>}
+                    <Link to="/gallery" onClick={() => setMobileMenu(false)} className="font-medium">Gallery</Link>
+                    <Link to="/packages" onClick={() => setMobileMenu(false)} className="font-medium">Packages</Link>
+                    <Link to="/about" onClick={() => setMobileMenu(false)} className="font-medium">About</Link>
+                    <Link to="/team" onClick={() => setMobileMenu(false)} className="font-medium">Team</Link>
+
+                    <Link to="/login" onClick={() => setMobileMenu(false)} className="text-accent-600 font-semibold">Login / Sign Up</Link>
+                    <Link to="/admin/login" onClick={() => setMobileMenu(false)} className="text-purple-600 font-semibold">Admin Login</Link>
+                  </>
+                )}
+
+                {/* logged-in normal user: only Book Service + Dashboard/Profile links (optional) + Logout */}
+                {isUser && (
+                  <>
+                    <Link to="/book-service" onClick={() => setMobileMenu(false)} className="text-accent-600 font-semibold">Book Service</Link>
+
+                    {/* keep quick access to dashboard/profile for mobile */}
+                    <Link to="/dashboard" onClick={() => setMobileMenu(false)} className="font-medium">Dashboard</Link>
+                    <Link to="/profile" onClick={() => setMobileMenu(false)} className="font-medium">Profile</Link>
+
+                    <button onClick={() => { handleLogout(); setMobileMenu(false); }} className="text-red-600 text-left mt-2">Logout</button>
+                  </>
+                )}
+
+                {/* admin mobile view */}
+                {isAdmin && (
+                  <>
+                    <Link to="/admin/dashboard" onClick={() => setMobileMenu(false)} className="font-medium">Admin Panel</Link>
+                    <button onClick={() => { handleLogout(); setMobileMenu(false); }} className="text-red-600 text-left mt-2">Logout</button>
+                  </>
+                )}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </nav>
   );
 }

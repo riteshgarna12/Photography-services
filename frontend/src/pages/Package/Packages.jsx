@@ -7,9 +7,7 @@ export default function Packages() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  // -----------------------------------------
   // BOOK NOW HANDLER
-  // -----------------------------------------
   const handleBookNow = () => {
     if (!user) {
       navigate("/login", { state: { redirectTo: "/book-service" } });
@@ -18,9 +16,7 @@ export default function Packages() {
     navigate("/book-service");
   };
 
-  // -----------------------------------------
   // PACKAGE DATA
-  // -----------------------------------------
   const packages = [
     {
       title: "Wedding Photography",
@@ -33,7 +29,7 @@ export default function Packages() {
       title: "Pre-Wedding Shoot",
       price: "₹10,000 - ₹40,000",
       slug: "pre-wedding-shoot",
-      image: "https://images.unsplash.com/photo-1500038934340-7ccbbf47f26f",
+      image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e",
       desc: "Romantic themed pre-wedding shoot with creative poses and locations.",
     },
     {
@@ -67,8 +63,8 @@ export default function Packages() {
   ];
 
   return (
-    <div className="bg-black text-white min-h-screen py-16 px-6">
-      <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
+    <div className="bg-bg text-text min-h-screen py-16 px-6">
+      <h1 className="text-4xl md:text-5xl font-bold text-center mb-12 text-text">
         Our Photography Packages
       </h1>
 
@@ -80,34 +76,34 @@ export default function Packages() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-gray-900 rounded-xl overflow-hidden hover:shadow-pink-500/20 transition shadow-xl border border-gray-800"
+            className="bg-panel rounded-xl overflow-hidden transition transform hover:scale-[1.01] shadow-token border border-border"
           >
             <img
               src={pkg.image}
               alt={pkg.title}
-              className="w-full h-56 object-cover hover:scale-110 transition duration-500"
+              className="w-full h-56 object-cover hover:scale-110 transition-transform duration-500"
             />
 
             <div className="p-5">
-              <h3 className="text-2xl font-semibold mb-2">{pkg.title}</h3>
-              <p className="text-pink-400 font-bold mb-2">{pkg.price}</p>
+              <h3 className="text-2xl font-semibold mb-2 text-text">{pkg.title}</h3>
+              <p className="text-accent-500 font-bold mb-2">{pkg.price}</p>
 
-              <p className="text-gray-300 text-sm mb-4">{pkg.desc}</p>
+              <p className="text-muted text-sm mb-4">{pkg.desc}</p>
 
-              {/* -------- View Portfolio Button -------- */}
+              {/* View Portfolio Button */}
               <button
-                onClick={() =>
-                  navigate(`/packages/${pkg.slug}/portfolio`)
-                }
-                className="w-full mb-3 border border-gray-700 py-2 rounded-lg text-gray-200 hover:bg-gray-800 transition"
+                onClick={() => navigate(`/packages/${pkg.slug}/portfolio`)}
+                className="w-full mb-3 border border-border py-2 rounded-lg text-text bg-panel hover:bg-panel/95 transition"
+                aria-label={`View portfolio for ${pkg.title}`}
               >
                 View Portfolio
               </button>
 
-              {/* -------- Book Now Button -------- */}
+              {/* Book Now Button */}
               <button
                 onClick={handleBookNow}
-                className="w-full bg-pink-600 py-2 rounded-lg text-white font-medium hover:bg-pink-700 transition"
+                className="w-full bg-accent-600 py-2 rounded-lg text-white font-medium hover:bg-accent-500 transition"
+                aria-label={`Book ${pkg.title}`}
               >
                 Book Now
               </button>

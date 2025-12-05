@@ -13,7 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // For redirect after auth (e.g. from packages → login → book-service)
+  // For redirect after auth
   const redirectTo = location.state?.redirectTo || "/dashboard";
 
   const [loginForm, setLoginForm] = useState({
@@ -62,24 +62,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-bg text-text flex items-center justify-center px-4 py-12">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-xl bg-gray-950/90 border border-gray-800 rounded-2xl shadow-2xl shadow-pink-500/10 p-6 md:p-8"
+        className="w-full max-w-xl bg-panel/90 border border-border rounded-2xl shadow-token p-6 md:p-8"
       >
         {/* Title */}
-        <h1 className="text-3xl font-extrabold text-white text-center mb-2">
+        <h1 className="text-3xl font-extrabold text-center mb-2 text-text">
           {mode === "login" ? "Welcome back" : "Create your account"}
         </h1>
-        <p className="text-center text-gray-400 text-sm mb-6">
+        <p className="text-center text-muted text-sm mb-6">
           {mode === "login"
             ? "Login to manage your bookings, profile and shoots."
             : "Sign up to book cinematic shoots and manage your events."}
         </p>
 
         {/* Tabs */}
-        <div className="flex mb-6 bg-black/60 rounded-full p-1 border border-gray-800">
+        <div className="flex mb-6 bg-panel/60 rounded-full p-1 border border-border">
           <button
             type="button"
             onClick={() => {
@@ -88,8 +88,8 @@ export default function Login() {
             }}
             className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
               mode === "login"
-                ? "bg-pink-600 text-white shadow-lg shadow-pink-500/40"
-                : "text-gray-400 hover:text-gray-200"
+                ? "bg-accent-600 text-white shadow-lg shadow-[rgb(var(--accent-500)/0.18)]"
+                : "text-muted hover:text-text"
             }`}
           >
             Login
@@ -102,8 +102,8 @@ export default function Login() {
             }}
             className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
               mode === "signup"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-500/40"
-                : "text-gray-400 hover:text-gray-200"
+                ? "bg-accent-500 text-white shadow-lg shadow-[rgb(var(--accent-500)/0.12)]"
+                : "text-muted hover:text-text"
             }`}
           >
             Sign Up
@@ -121,53 +121,53 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4 text-sm">
           {mode === "signup" && (
             <div>
-              <label className="block text-gray-300 mb-1">Full Name</label>
+              <label className="block text-muted mb-1">Full Name</label>
               <input
                 type="text"
                 name="name"
                 value={signupForm.name}
                 onChange={handleSignupChange}
                 placeholder="Enter your full name"
-                className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-pink-500"
+                className="w-full bg-panel/80 border border-border rounded-lg px-3 py-2 text-text focus:outline-none focus:border-accent-500"
                 required
               />
             </div>
           )}
 
           <div>
-            <label className="block text-gray-300 mb-1">Email</label>
+            <label className="block text-muted mb-1">Email</label>
             <input
               type="email"
               name="email"
               value={mode === "login" ? loginForm.email : signupForm.email}
               onChange={mode === "login" ? handleLoginChange : handleSignupChange}
               placeholder="Enter your email"
-              className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-pink-500"
+              className="w-full bg-panel/80 border border-border rounded-lg px-3 py-2 text-text focus:outline-none focus:border-accent-500"
               required
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-1">Password</label>
+            <label className="block text-muted mb-1">Password</label>
             <input
               type="password"
               name="password"
               value={mode === "login" ? loginForm.password : signupForm.password}
               onChange={mode === "login" ? handleLoginChange : handleSignupChange}
               placeholder="Enter your password"
-              className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-pink-500"
+              className="w-full bg-panel/80 border border-border rounded-lg px-3 py-2 text-text focus:outline-none focus:border-accent-500"
               required
             />
           </div>
 
           {mode === "signup" && (
             <div>
-              <label className="block text-gray-300 mb-1">Role</label>
+              <label className="block text-muted mb-1">Role</label>
               <select
                 name="role"
                 value={signupForm.role}
                 onChange={handleSignupChange}
-                className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-pink-500"
+                className="w-full bg-panel/80 border border-border rounded-lg px-3 py-2 text-text focus:outline-none focus:border-accent-500"
               >
                 <option value="client">Client</option>
                 <option value="photographer">Photographer</option>
@@ -181,7 +181,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 rounded-full bg-pink-600 hover:bg-pink-700 text-sm font-semibold shadow-lg shadow-pink-500/30 disabled:opacity-60 disabled:cursor-not-allowed transition"
+            className="w-full mt-2 py-3 rounded-full bg-accent-600 hover:bg-accent-500 text-sm font-semibold text-white shadow-token disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
             {loading
               ? "Please wait..."
@@ -192,10 +192,10 @@ export default function Login() {
         </form>
 
         {/* Small hint for admin */}
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p className="text-xs text-muted text-center mt-4">
           Are you an admin?{" "}
           <span
-            className="text-purple-400 cursor-pointer hover:underline"
+            className="text-accent-500 cursor-pointer hover:underline"
             onClick={() => navigate("/admin/login")}
           >
             Go to Admin Login
